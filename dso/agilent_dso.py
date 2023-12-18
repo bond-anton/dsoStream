@@ -35,7 +35,7 @@ class AgilentDSO(DSO):
 
     @time_scale.setter
     def time_scale(self, new_time_scale):
-        self.scope.command(f":TIMebase:SCALe {new_time_scale:0.1E}")
+        self.scope.command(f":TIMebase:SCALe {new_time_scale:0.1E}", no_response=True)
         self.__time_scale = float(self.scope.command(":TIMebase:SCALe?"))
 
     @property
@@ -45,77 +45,105 @@ class AgilentDSO(DSO):
 
     @sampling_rate.setter
     def sampling_rate(self, new_sampling_rate):
-        self.scope.command(f":ACQuire:SRATe {new_sampling_rate:0.1E}")
+        self.scope.command(f":ACQuire:SRATe {new_sampling_rate:0.1E}", no_response=True)
         self.__sampling_rate = float(self.scope.command(":ACQuire:SRATe?"))
 
     def get_v_scale(self, ch=1):
         return float(self.scope.command(f":CHAN{ch:d}:SCALe?"))
 
     def set_v_scale(self, ch=1, v_scale=1.0):
-        self.scope.command(f":CHAN{ch:d}:SCALe {v_scale:0.1E}")
+        self.scope.command(f":CHAN{ch:d}:SCALe {v_scale:0.1E}", no_response=True)
 
     def set_ch_coupling(self, ch=1, coupling="DC"):
         # DC | AC | GND
-        self.scope.command(f":CHAN{ch:d}:COUPling {coupling}")
+        self.scope.command(f":CHAN{ch:d}:COUPling {coupling}", no_response=True)
 
     def set_ch_bwlimit(self, ch=1, bwlimit=0):
         # 1 for BW limit ~ 25MHz
-        self.scope.command(f":CHAN{ch:d}:BWLimit {bwlimit:d}")
+        self.scope.command(f":CHAN{ch:d}:BWLimit {bwlimit:d}", no_response=True)
 
     def set_ch_probe(self, ch=1, attn=1):
         # 1 | 10 | 100 | 1000
-        self.scope.command(f":CHAN{ch:d}:PROBe {attn:d}")
+        self.scope.command(f":CHAN{ch:d}:PROBe {attn:d}", no_response=True)
 
     def set_ch_invert(self, ch=1, invert=0):
         # 1 = Invert ON, 0 = Invert OFF
-        self.scope.command(f":CHAN{ch:d}:INVert {invert:d}")
+        self.scope.command(f":CHAN{ch:d}:INVert {invert:d}", no_response=True)
 
     def set_ch_display(self, ch=1, display=1):
         # 1 = ON, 0 = OFF
-        self.scope.command(f":CHAN{ch:d}:DISPlay {display:d}")
+        self.scope.command(f":CHAN{ch:d}:DISPlay {display:d}", no_response=True)
 
     def set_trigger_mode(self, mode="EDGE"):
         # EDGE | PULSE | TV
-        self.scope.command(f":TRIGger:MODE {mode.upper()}")
+        self.scope.command(f":TRIGger:MODE {mode.upper()}", no_response=True)
 
     def set_trigger_source(self, source="Ext"):
         if source.upper() in ["EXT", "EXTERNAL", "EXTERN"]:
-            self.scope.command(f":TRIGger:SOURe EXT")
+            self.scope.command(f":TRIGger:SOURe EXT", no_response=True)
         elif source.upper() in ["1", "CH1", "CHANNEL1", "CH 1", "CHANNEL1", "CHAN1", "CHAN 1"]:
-            self.scope.command(f":TRIGger:SOURe CHANnel1")
+            self.scope.command(f":TRIGger:SOURe CHANnel1", no_response=True)
         elif source.upper() in ["2", "CH2", "CHANNEL2", "CH 2", "CHANNEL2", "CHAN2", "CHAN 2"]:
-            self.scope.command(f":TRIGger:SOURe CHANnel2")
+            self.scope.command(f":TRIGger:SOURe CHANnel2", no_response=True)
 
     def set_trigger_slope(self, slope="POS"):
         # NEG or POS
-        self.scope.command(f":TRIGger:EDGE:SLOPe {slope.upper()}")
+        self.scope.command(f":TRIGger:EDGE:SLOPe {slope.upper()}", no_response=True)
 
     def set_trigger_level(self, level=0.0):
-        self.scope.command(f":TRIGger:EDGE:LEVel {level:0.2E}")
+        self.scope.command(f":TRIGger:EDGE:LEVel {level:0.2E}", no_response=True)
 
     def set_trigger_coupling(self, coupling="DC"):
-        self.scope.command(f":TRIGger:EDGE:COUPling {coupling}")
+        self.scope.command(f":TRIGger:EDGE:COUPling {coupling}", no_response=True)
 
     def set_trigger_sweep(self, sweep="AUTO"):
-        self.scope.command(f":TRIGger:EDGE:SWEep {sweep}")
+        self.scope.command(f":TRIGger:EDGE:SWEep {sweep}", no_response=True)
 
     def get_trigger_status(self):
         # T'D | WAIT | STOP
         return self.scope.command(f":TRIGger:STATus?")
 
     def force_trig(self):
-        self.scope.command(":ForceTrig")
+        self.scope.command(":ForceTrig", no_response=True)
+
+    def set_run(self):
+        self.scope.command(":RUN", no_response=True)
+
+    def set_stop(self):
+        self.scope.command(":STOP", no_response=True)
+
+    def set_single(self):
+        self.scope.command(":SINGLE", no_response=True)
 
     @property
     def buffer_size(self):
-        return int(self.scope.command(":WAVeform:WINMemsize?"))
+        # return int(self.scope.command(":WAVeform:WINMemsize?"))
+        return int(self.scope.command(":WAVeform:SYSMemsize?"))
+
+    def set_points_mode(self, points_mode="MAX"):
+        # NORM | MAX | RAW
+        self.scope.command(f":WAVeform:POINts:MODE {points_mode.upper()}", no_response=True)
+
+    def get_points_mode(self):
+        # NORM | MAX | RAW
+        return self.scope.command(":WAVeform:POINts:MODE?")
+
+    def set_points_num(self, points_num=600):
+        if points_num > self.buffer_size:
+            points_num = self.buffer_size
+        print(f"SETTING POINT NUM {points_num:d}")
+        self.scope.command(f":WAVeform:POINts {points_num:d}", no_response=True)
+
+    def get_points_num(self):
+        return int(self.scope.command(":WAVeform:POINts?"))
 
     @property
     def time_resolution(self):
         return float(self.scope.command(":WAVeform:XINCrement?"))
 
-    def _read_data(self, ch=1):
-        return self.scope.read_screen(channel=ch)
+    def _read_data(self, ch=1, num=-1, raw=False):
+        return self.scope.read_screen(channel=ch, num=num, raw=raw)
+        # return self.scope.read_memory(channel=ch)
 
     def close(self):
         self.scope.close()
@@ -127,11 +155,16 @@ class DSO3000(AgilentDSO):
         scope = DSO3000com()
         super().__init__(scope=scope)
 
+    def set_points_mode(self, points_mode="MAX"):
+        # NORM | MAX | RAW
+        pass
+
 
 class DSO1000(AgilentDSO):
 
-    def __init__(self, usbtmc_dev=None):
-        scope = DSO1000com(usbtmc_dev)
+    def __init__(self, device=0x0588):
+        vendor = 0x0957
+        scope = DSO1000com(vendor=vendor, device=device)
         super().__init__(scope=scope)
 
 
@@ -156,18 +189,21 @@ class AgilentDSOcom:
         # *RST takes about 1500ms, so the timeout should be longer than that.
         self.timeout = 10000
 
-    def command(self, s):
-        return s
+    def command(self, s, no_response=False, num=-1, raw=False):
+        if not no_response:
+            return s
 
-    def read_data(self, command):
+    def read_data(self, command, num=-1, raw=False):
         """
         Reads waveform data with the given command and returns the waveform in volts.
         """
         # Send the command
-        response = self.command(command)
-
-        # Parse the result into ADC readings
-        data_bytes = bytearray.fromhex(response.replace("0x", "").replace(" ", ""))
+        response = self.command(command, num=-1, raw=raw)
+        if raw:
+            data_bytes = response
+        else:
+            # Parse the result into ADC readings
+            data_bytes = bytearray.fromhex(response.replace("0x", "").replace(" ", ""))
         data = np.frombuffer(data_bytes, np.uint8).astype(int)
 
         # Get channel configuration needed to convert to volts
@@ -179,19 +215,19 @@ class AgilentDSOcom:
         # but setting a channel to GND produces all 126's (one count below zero volts).
         return (125.0 - data) * y_increment - y_origin
 
-    def read_memory(self, channel):
+    def read_memory(self, channel, num=-1, raw=False):
         """
         Reads waveform memory for the given channel (1 or 2)
         """
-        self.command(f":WAV:SOUR CHANNEL{channel:d}")
-        return self.read_data(':WAV:MEM?')
+        self.command(f":WAV:SOUR CHANNEL{channel:d}", no_response=True)
+        return self.read_data(':WAV:MEM?', num=num, raw=raw)
 
-    def read_screen(self, channel):
+    def read_screen(self, channel, num=-1, raw=False):
         """
         Reads the waveform on the screen for the given channel (1 or 2)
         """
-        self.command(f":WAV:SOUR CHANNEL{channel:d}")
-        return self.read_data(":WAV:DATA?")
+        self.command(f":WAV:SOUR CHANNEL{channel:d}", no_response=True)
+        return self.read_data(":WAV:DATA?", num=num, raw=raw)
 
     def close(self):
         pass
@@ -261,7 +297,7 @@ class DSO3000com(AgilentDSOcom):
             response += ''.join(chr(x) for x in data).rstrip('\r\n')
         return response
 
-    def command(self, s):
+    def command(self, s, no_response=False, num=-1, raw=False):
         """
         Writes a command string and returns the response (if any)
         """
@@ -309,17 +345,62 @@ class DSO3000com(AgilentDSOcom):
 
 class DSO1000com(AgilentDSOcom):
 
-    def __init__(self, usbtmc_dev=None):
+    def __init__(self, vendor=0x0957, device=0x0588):
         super().__init__()
-        if usbtmc_dev is None:
-            print("Provide a valid USBTMC device")
+        if vendor is None:
+            print("Provide a valid USBTMC vendor ID, e.g. 0x0957")
             print(usbtmc.list_devices())
             raise IOError("No USB oscilloscope found")
-        self.device = usbtmc.Instrument(usbtmc_dev)
+        if device is None:
+            print("Provide a valid USBTMC device ID, e.g. 0x0588")
+            print(usbtmc.list_devices())
+            raise IOError("No USB oscilloscope found")
+        dso_device = None
+        devs = usbtmc.list_devices()
+        if len(devs) == 0:
+            print("No USBTMC devices found")
+            raise IOError("No USBTMC devices found")
+        for dev in devs:
+            # match VID and PID
+            if dev.idVendor == vendor and dev.idProduct == device:
+                dso_device = dev
+                break
+        if dso_device is None:
+            print("Provide a valid USBTMC device ID, e.g. 0x0588")
+            print(usbtmc.list_devices())
+            raise IOError("No USB oscilloscope found")
+        self.device = usbtmc.Instrument(dso_device)
         self.device.open()
 
-    def command(self, s):
-        return self.device.ask(s)
+    def command(self, s, no_response=False, num=-1, raw=False):
+        if no_response:
+            self.device.write(s)
+        else:
+            if raw:
+                return self.device.ask_raw(s.encode("utf-8"), num=num)
+            return self.device.ask(s, num=num)
+
+    def read_data(self, command, num=-1, raw=False):
+        """
+        Reads waveform data with the given command and returns the waveform in volts.
+        """
+        # Send the command
+        response = self.command(command, num=num, raw=raw)
+        if raw:
+            data_bytes = response
+        else:
+            data_bytes = bytearray(response.encode('utf-8'))
+        # Parse the result into ADC readings
+        data = np.frombuffer(data_bytes, np.uint8).astype(int)
+
+        # Get channel configuration needed to convert to volts
+        y_increment = float(self.command(":WAV:YINC?"))
+        y_origin = float(self.command(":WAV:YOR?"))
+
+        # Convert ADC readings to volts.
+        # Agilent's Programmer's Reference appears to have this formula right,
+        # but setting a channel to GND produces all 126's (one count below zero volts).
+        return (125.0 - data) * y_increment - y_origin
 
     def close(self):
         self.device.close()

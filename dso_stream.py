@@ -56,6 +56,8 @@ def get_scope(config):
 def configure_scope(scope, config):
     scope.time_scale = config["time_scale"]
     scope.sampling_rate = config["sampling_rate"]
+    scope.set_points_mode(config["points_mode"])
+    scope.set_points_num(scope.buffer_size)
     for channel in config["channels"]:
         scope.set_ch_display(channel["ch"], 1)
         scope.set_v_scale(channel["ch"], channel["v_scale"])
@@ -110,11 +112,17 @@ def main():
     record_time = scope.buffer_size * scope.time_resolution
     channels_read_time = 0
     channels_save_time = 0
+    scope.set_stop()
     try:
         while True:
             trigger_status = scope.get_trigger_status()
             if trigger_status == "WAIT":
                 if need_to_save:
+                    scope.set_stop()
+                    while scope.get_trigger_status() != "STOP":
+                        pass
+                    scope.set_points_num(scope.buffer_size)
+                    print(scope.get_points_mode(), scope.get_points_num())
                     acquisition_stop = time.time_ns()
                     acq_time = acquisition_stop - acquisition_start
                     save_time = time.time_ns()
@@ -130,11 +138,13 @@ def main():
 
 
                     print(f"======>Acquisition took {acq_time / 1e6} ms, record_time={record_time * 1e9} ns")
+                    print(f"======>Datapoints: {scope.buffer_size:d}")
                     print("========> SAVING DATA")
                     channels_read_time = 0
                     channels_save_time = 0
                     for channel in config["channels"]:
-                        channel_data = scope.read_data(channel["ch"])
+                        channel_data = scope.read_data(channel["ch"], num=scope.get_points_num(), raw=True)
+                        print(channel_data["data"].shape)
                         channels_read_time += channel_data['timestamp_stop'] - channel_data['timestamp_start']
                         print(f"========> CH{channel['ch']} reading took {(channel_data['timestamp_stop'] - channel_data['timestamp_start']) / 1e6} ms")
                         channel_data["timestamp_start"] = acquisition_start
@@ -146,10 +156,12 @@ def main():
                             f"========> CH{channel['ch']} saving took {save_time / 1e6} ms")
                         channels_save_time += save_time
                     need_to_save = False
-                    if config["trigger_force"]:
-                        trigger_forced_time = time.time_ns()
-                        print("===> FORCE TRIGGER")
-                        scope.force_trig()
+            elif trigger_status == "STOP":
+                if config["trigger_force"]:
+                    scope.set_run()
+                    trigger_forced_time = time.time_ns()
+                    print("===> FORCE TRIGGER")
+                    scope.force_trig()
             elif trigger_status == "T'D" and not need_to_save:
                 trigger_set_time = time.time_ns() - trigger_forced_time
                 acquisition_start = time.time_ns()

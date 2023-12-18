@@ -80,6 +80,29 @@ class DSO:
     def force_trig(self):
         pass
 
+    def set_run(self):
+        pass
+
+    def set_stop(self):
+        pass
+
+    def set_single(self):
+        pass
+
+    def set_points_mode(self, points_mode="MAX"):
+        # NORM | MAX | RAW
+        pass
+
+    def get_points_mode(self):
+        # NORM | MAX | RAW
+        pass
+
+    def set_points_num(self, points_num=600):
+        pass
+
+    def get_points_num(self):
+        pass
+
     @property
     def buffer_size(self):
         return 300
@@ -88,9 +111,9 @@ class DSO:
     def time_resolution(self):
         return 1e-9
 
-    def read_data(self, ch=1):
+    def read_data(self, ch=1, num=-1, raw=False):
         timestamp_start = time.time_ns()
-        data = self._read_data(ch=ch)
+        data = self._read_data(ch=ch, num=num, raw=raw)
         timestamp_stop = time.time_ns()
         return {
             "timestamp_start": timestamp_start,
@@ -101,7 +124,9 @@ class DSO:
             "data": data
         }
 
-    def _read_data(self, ch=1):
+    def _read_data(self, ch=1, num=-1, raw=False):
         if ch > 0:
+            if num > 0:
+                return np.zeros(num)
             return np.zeros(self.buffer_size)
         return None
