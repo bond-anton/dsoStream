@@ -148,28 +148,29 @@ def main():
                     acq_loop_time = save_time - last_save
                     dead_time = acq_loop_time - record_time
                     last_save = save_time
-                    python_time = acq_loop_time - trigger_set_time - acq_time - channels_read_time - channels_save_time
+                    # python_time = acq_loop_time - trigger_set_time - acq_time - channels_read_time - channels_save_time
                     print(f"LOOP TIME: {acq_loop_time / 1e6} ms, RECORD LENGTH={record_time / 1e3} us, DEAD TIME={dead_time / 1e6} ms ({dead_time / record_time * 100}%)")
-                    print(f"TRIGGER SET time: {trigger_set_time / 1e6} ms = {trigger_set_time / acq_loop_time * 100}%")
-                    print(f"ACQ time: {acq_time / 1e6} ms = {acq_time / acq_loop_time * 100}%")
-                    print(f"READ time: {channels_read_time / 1e6} ms = {channels_read_time / acq_loop_time * 100}%")
-                    print(f"SAVE time: {channels_save_time / 1e6} ms = {channels_save_time / acq_loop_time * 100}%")
-                    print(f"PYTHON overhead: {python_time / 1e6} ms = {python_time / acq_loop_time * 100}%")
-
-
-                    print(f"======>Acquisition took {acq_time / 1e6} ms, record_time={record_time / 1e6} ms")
-                    print("========> SAVING DATA")
+                    # print(f"TRIGGER SET time: {trigger_set_time / 1e6} ms = {trigger_set_time / acq_loop_time * 100}%")
+                    # print(f"ACQ time: {acq_time / 1e6} ms = {acq_time / acq_loop_time * 100}%")
+                    # print(f"READ time: {channels_read_time / 1e6} ms = {channels_read_time / acq_loop_time * 100}%")
+                    # print(f"SAVE time: {channels_save_time / 1e6} ms = {channels_save_time / acq_loop_time * 100}%")
+                    # print(f"PYTHON overhead: {python_time / 1e6} ms = {python_time / acq_loop_time * 100}%")
+                    #
+                    #
+                    # print(f"======>Acquisition took {acq_time / 1e6} ms, record_time={record_time / 1e6} ms")
+                    # print("========> SAVING DATA")
                     channels_read_time, channels_save_time = save_channels_data(scope, streamer, config,
                                                                                 acquisition_start, acquisition_stop)
                     need_to_save = False
+                    print()
             elif trigger_status == "STOP":
                 if config["trigger_force"]:
-                    trigger_forced_time = time.time_ns()
+                    # trigger_forced_time = time.time_ns()
                     scope.set_run()
                     print("===> FORCE TRIGGER")
                     scope.force_trig()
             elif trigger_status == "T'D" and not need_to_save:
-                trigger_set_time = time.time_ns() - trigger_forced_time
+                # trigger_set_time = time.time_ns() - trigger_forced_time
                 acquisition_start = time.time_ns()
                 need_to_save = True
     except KeyboardInterrupt:
