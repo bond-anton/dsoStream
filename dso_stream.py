@@ -130,7 +130,6 @@ def main():
     trigger_forced_time = 0
     trigger_set_time = 0
     last_save = time.time_ns()
-    record_time = scope.buffer_size * scope.time_resolution * 1e9
     channels_read_time = 0
     channels_save_time = 0
     scope.set_stop()
@@ -142,8 +141,10 @@ def main():
                     print("===> NEED TO SAVE DATA")
                     scope.set_stop()
                     scope.set_points_num(scope.buffer_size)
+                    record_time = scope.buffer_size * scope.time_resolution * 1e9
+                    # print("RES", scope.time_resolution)
                     acquisition_stop = time.time_ns()
-                    acq_time = acquisition_stop - acquisition_start
+                    # acq_time = acquisition_stop - acquisition_start
                     save_time = time.time_ns()
                     acq_loop_time = save_time - last_save
                     dead_time = acq_loop_time - record_time
@@ -164,6 +165,7 @@ def main():
                     need_to_save = False
                     print()
             elif trigger_status == "STOP":
+                # print("RES", scope.time_resolution)
                 # trigger_forced_time = time.time_ns()
                 scope.set_run()
                 if config["trigger_force"]:
