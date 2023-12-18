@@ -1,4 +1,5 @@
 numpy
+ruamel.yaml
 pyusb
 python-usbtmc
 Pillow
