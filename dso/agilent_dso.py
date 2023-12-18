@@ -80,11 +80,11 @@ class AgilentDSO(DSO):
 
     def set_trigger_source(self, source="Ext"):
         if source.upper() in ["EXT", "EXTERNAL", "EXTERN"]:
-            self.scope.command(f":TRIGger:SOURe EXT", no_response=True)
+            self.scope.command(f":TRIGger:EDGE:SOURCe EXT", no_response=True)
         elif source.upper() in ["1", "CH1", "CHANNEL1", "CH 1", "CHANNEL1", "CHAN1", "CHAN 1"]:
-            self.scope.command(f":TRIGger:SOURe CHANnel1", no_response=True)
+            self.scope.command(f":TRIGger:EDGE:SOURCe CHANnel1", no_response=True)
         elif source.upper() in ["2", "CH2", "CHANNEL2", "CH 2", "CHANNEL2", "CHAN2", "CHAN 2"]:
-            self.scope.command(f":TRIGger:SOURe CHANnel2", no_response=True)
+            self.scope.command(f":TRIGger:EDGE:SOURCe CHANnel2", no_response=True)
 
     def set_trigger_slope(self, slope="POS"):
         # NEG or POS
@@ -94,7 +94,7 @@ class AgilentDSO(DSO):
         self.scope.command(f":TRIGger:EDGE:LEVel {level:0.2E}", no_response=True)
 
     def set_trigger_coupling(self, coupling="DC"):
-        self.scope.command(f":TRIGger:EDGE:COUPling {coupling}", no_response=True)
+        self.scope.command(f":TRIGger:COUPling {coupling}", no_response=True)
 
     def set_trigger_sweep(self, sweep="AUTO"):
         self.scope.command(f":TRIGger:EDGE:SWEep {sweep}", no_response=True)
