@@ -164,9 +164,9 @@ def main():
                     need_to_save = False
                     print()
             elif trigger_status == "STOP":
+                # trigger_forced_time = time.time_ns()
+                scope.set_run()
                 if config["trigger_force"]:
-                    # trigger_forced_time = time.time_ns()
-                    scope.set_run()
                     print("===> FORCE TRIGGER")
                     scope.force_trig()
             elif trigger_status == "T'D" and not need_to_save:
