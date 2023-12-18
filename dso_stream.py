@@ -58,6 +58,8 @@ def configure_scope(scope, config):
     scope.sampling_rate = config["sampling_rate"]
     scope.set_points_mode(config["points_mode"])
     scope.set_points_num(scope.buffer_size)
+    for i in range(4):
+        scope.set_ch_display(i, 0)
     for channel in config["channels"]:
         scope.set_ch_display(channel["ch"], 1)
         scope.set_v_scale(channel["ch"], channel["v_scale"])
@@ -71,6 +73,25 @@ def configure_scope(scope, config):
     scope.set_trigger_level(config["trigger_level"])
     scope.set_trigger_coupling(config["trigger_coupling"])
     scope.set_trigger_sweep(config["trigger_sweep"])
+
+
+def save_channels_data(scope, streamer, config, acquisition_start, acquisition_stop):
+    channels_read_time = 0
+    channels_save_time = 0
+    for channel in config["channels"]:
+        channel_data = scope.read_data(channel["ch"], num=scope.get_points_num(), raw=True)
+        channels_read_time += channel_data['timestamp_stop'] - channel_data['timestamp_start']
+        print(
+            f"========> CH{channel['ch']} reading {channel_data['data'].shape[0]} points took {(channel_data['timestamp_stop'] - channel_data['timestamp_start']) / 1e6} ms")
+        channel_data["timestamp_start"] = acquisition_start
+        channel_data["timestamp_stop"] = acquisition_stop
+        save_start = time.time_ns()
+        streamer.save_channel_data(channel_data)
+        save_time = time.time_ns() - save_start
+        print(
+            f"========> CH{channel['ch']} saving {channel_data['data'].shape[0]} points took {save_time / 1e6} ms")
+        channels_save_time += save_time
+    return channels_read_time, channels_save_time
 
 
 def main():
@@ -109,7 +130,7 @@ def main():
     trigger_forced_time = 0
     trigger_set_time = 0
     last_save = time.time_ns()
-    record_time = scope.buffer_size * scope.time_resolution
+    record_time = scope.buffer_size * scope.time_resolution * 1e9
     channels_read_time = 0
     channels_save_time = 0
     scope.set_stop()
@@ -118,18 +139,17 @@ def main():
             trigger_status = scope.get_trigger_status()
             if trigger_status == "WAIT":
                 if need_to_save:
+                    print("===> NEED TO SAVE DATA")
                     scope.set_stop()
-                    while scope.get_trigger_status() != "STOP":
-                        pass
                     scope.set_points_num(scope.buffer_size)
-                    print(scope.get_points_mode(), scope.get_points_num())
                     acquisition_stop = time.time_ns()
                     acq_time = acquisition_stop - acquisition_start
                     save_time = time.time_ns()
                     acq_loop_time = save_time - last_save
+                    dead_time = acq_loop_time - record_time
                     last_save = save_time
                     python_time = acq_loop_time - trigger_set_time - acq_time - channels_read_time - channels_save_time
-                    print(f"Time since last save: {acq_loop_time / 1e6} ms")
+                    print(f"LOOP TIME: {acq_loop_time / 1e6} ms, RECORD LENGTH={record_time / 1e3} us, DEAD TIME={dead_time / 1e6} ms ({dead_time / record_time * 100}%)")
                     print(f"TRIGGER SET time: {trigger_set_time / 1e6} ms = {trigger_set_time / acq_loop_time * 100}%")
                     print(f"ACQ time: {acq_time / 1e6} ms = {acq_time / acq_loop_time * 100}%")
                     print(f"READ time: {channels_read_time / 1e6} ms = {channels_read_time / acq_loop_time * 100}%")
@@ -137,35 +157,20 @@ def main():
                     print(f"PYTHON overhead: {python_time / 1e6} ms = {python_time / acq_loop_time * 100}%")
 
 
-                    print(f"======>Acquisition took {acq_time / 1e6} ms, record_time={record_time * 1e9} ns")
-                    print(f"======>Datapoints: {scope.buffer_size:d}")
+                    print(f"======>Acquisition took {acq_time / 1e6} ms, record_time={record_time / 1e6} ms")
                     print("========> SAVING DATA")
-                    channels_read_time = 0
-                    channels_save_time = 0
-                    for channel in config["channels"]:
-                        channel_data = scope.read_data(channel["ch"], num=scope.get_points_num(), raw=True)
-                        print(channel_data["data"].shape)
-                        channels_read_time += channel_data['timestamp_stop'] - channel_data['timestamp_start']
-                        print(f"========> CH{channel['ch']} reading took {(channel_data['timestamp_stop'] - channel_data['timestamp_start']) / 1e6} ms")
-                        channel_data["timestamp_start"] = acquisition_start
-                        channel_data["timestamp_stop"] = acquisition_stop
-                        save_start = time.time_ns()
-                        streamer.save_channel_data(channel_data)
-                        save_time = time.time_ns() - save_start
-                        print(
-                            f"========> CH{channel['ch']} saving took {save_time / 1e6} ms")
-                        channels_save_time += save_time
+                    channels_read_time, channels_save_time = save_channels_data(scope, streamer, config,
+                                                                                acquisition_start, acquisition_stop)
                     need_to_save = False
             elif trigger_status == "STOP":
                 if config["trigger_force"]:
-                    scope.set_run()
                     trigger_forced_time = time.time_ns()
+                    scope.set_run()
                     print("===> FORCE TRIGGER")
                     scope.force_trig()
             elif trigger_status == "T'D" and not need_to_save:
                 trigger_set_time = time.time_ns() - trigger_forced_time
                 acquisition_start = time.time_ns()
-                print("===> NEED TO SAVE DATA")
                 need_to_save = True
     except KeyboardInterrupt:
         print()
