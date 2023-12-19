@@ -124,6 +124,7 @@ def main():
         print("==> Directory is not writable (Permission Error)")
         return
 
+    sampling_interval = config["trigger_force_interval"]
     print("Start streaming data")
     need_to_save = False
     acquisition_start = 0
@@ -166,13 +167,17 @@ def main():
                     print()
             elif trigger_status == "STOP":
                 # print("RES", scope.time_resolution)
-                # trigger_forced_time = time.time_ns()
-                scope.set_run()
                 if config["trigger_force"]:
-                    print("===> FORCE TRIGGER")
-                    scope.force_trig()
+                    if (time.time_ns() - trigger_forced_time) / 1e9 > float(sampling_interval):
+                        scope.set_run()
+                        print("===> FORCE TRIGGER")
+                        trigger_forced_time = time.time_ns()
+                        scope.force_trig()
+                else:
+                    scope.set_run()
             elif trigger_status == "T'D" and not need_to_save:
-                # trigger_set_time = time.time_ns() - trigger_forced_time
+                if config["trigger_force"]:
+                    trigger_set_time = time.time_ns() - trigger_forced_time
                 acquisition_start = time.time_ns()
                 need_to_save = True
     except KeyboardInterrupt:

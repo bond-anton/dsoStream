@@ -3,6 +3,14 @@ driver: "DSO1000"  # DSO3000 or DSO1000
 time_scale: 2e-9
 sampling_rate: 2e9
 points_mode: "MAX"  # NORM | MAX | RAW
+trigger_mode: "EDGE"  # EDGE, PULSE, TV
+trigger_source: "EXT"  # CH1, CH2, Ext
+trigger_slope: "POS"  # NEG or POS
+trigger_level: 0.75  # EDGE Trigger level in volts
+trigger_coupling: "DC"  # DC | AC | LF | HF
+trigger_sweep: "NORMAL"  # NORMAL or AUTO
+trigger_force: 1  # Force software trigger if 1
+trigger_force_interval: 2.0  # Desired Software trigger interval in seconds 0 for DSO max speed.
 channels:
   - ch: 1
     label: "Detector"
@@ -18,10 +26,4 @@ channels:
   #  bw_limit: 0  # 1 for bandwidth limit ~25MHz
   #  probe_attn: 1  # Probe attenuation x 1 | 10 | 100 | 1000
   #  invert: 0  # 1 = Invert ON, 0 = Invert OFF
-trigger_mode: "EDGE"  # EDGE, PULSE, TV
-trigger_source: "EXT"  # CH1, CH2, Ext
-trigger_slope: "POS"  # NEG or POS
-trigger_level: 0.75  # EDGE Trigger level in volts
-trigger_coupling: "DC"  # DC | AC | LF | HF
-trigger_sweep: "NORMAL"  # NORMAL or AUTO
-trigger_force: 1  # Force software trigger if 1
+

@@ -2,5 +2,4 @@ numpy
 ruamel.yaml
 pyusb
 python-usbtmc
-Pillow
 h5py
