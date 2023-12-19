@@ -1,8 +1,12 @@
-data_dir: ""
-driver: "DSO1000"  # DSO3000 or DSO1000
-time_scale: 2e-9
-sampling_rate: 2e9
-points_mode: "MAX"  # NORM | MAX | RAW
+# Data Directory
+data_dir: ""  # Path to data storage directory
+# DSO setup
+driver: "DSO1000"  # DSO3000 or DSO1000 - DSO driver to use
+# Timing configuration
+time_scale: 2e-9  # DSO timescale s/div
+sampling_rate: 2e9  # DSO sampling rate
+points_mode: "MAX"  # NORM | MAX | RAW DSO points mode
+# Trigger Parameters
 trigger_mode: "EDGE"  # EDGE, PULSE, TV
 trigger_source: "EXT"  # CH1, CH2, Ext
 trigger_slope: "POS"  # NEG or POS
@@ -11,6 +15,7 @@ trigger_coupling: "DC"  # DC | AC | LF | HF
 trigger_sweep: "NORMAL"  # NORMAL or AUTO
 trigger_force: 1  # Force software trigger if 1
 trigger_force_interval: 2.0  # Desired Software trigger interval in seconds 0 for DSO max speed.
+# Channels configuration
 channels:
   - ch: 1
     label: "Detector"
@@ -26,4 +31,3 @@ channels:
   #  bw_limit: 0  # 1 for bandwidth limit ~25MHz
   #  probe_attn: 1  # Probe attenuation x 1 | 10 | 100 | 1000
   #  invert: 0  # 1 = Invert ON, 0 = Invert OFF
-
